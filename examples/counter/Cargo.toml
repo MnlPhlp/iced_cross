@@ -9,8 +9,10 @@ crate-type = ["staticlib", "cdylib", "rlib"]
 
 [dependencies]
 iced_cross = { path = "../.." }
-tauri.workspace = true
 iced.workspace = true
+
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+tauri.workspace = true
 
 [build-dependencies]
 iced_cross_build = { path = "../../crates/iced_cross_build" }

@@ -16,8 +16,10 @@ tauri = "2.10.3"
 
 [dependencies]
 iced.workspace = true
-tauri = { workspace = true, optional = true }
 tracing-subscriber = "0.3.22"
+
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+tauri = { workspace = true, optional = true }
 
 [target.'cfg(target_os = "android")'.dependencies]
 tracing-android = "0.2.0"
