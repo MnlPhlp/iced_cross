@@ -11,7 +11,7 @@ members = [
 ]
 
 [workspace.dependencies]
-iced = { path = "../../tmp/iced" }
+iced = { path = "../../tmp/iced", features = ["tokio"] }
 tauri = "2.10.3"
 
 [dependencies]
@@ -31,3 +31,4 @@ wasm-tracing = "2"
 [features]
 default = ["tauri-plugins"]
 tauri-plugins = ["dep:tauri"]
+hotpatch = ["iced/hot"]

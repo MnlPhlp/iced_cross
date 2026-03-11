@@ -1,8 +1,39 @@
 use iced::Task;
+#[cfg(feature = "tauri-plugins")]
 // re-exports for use in macro generated code
 #[cfg(target_arch = "wasm32")]
 pub use wasm_bindgen;
 
+#[macro_export]
+#[cfg(all(not(target_arch = "wasm32"), feature = "tauri-plugins"))]
+macro_rules! init_tauri_context {
+    () => {
+        $crate::set_tauri_context(tauri::generate_context!());
+    };
+}
+
+#[macro_export]
+#[cfg(any(target_arch = "wasm32", not(feature = "tauri-plugins")))]
+macro_rules! init_tauri_context {
+    () => {};
+}
+
+#[macro_export]
+macro_rules! main {
+    ($app:path) => {
+        fn main() {
+            iced_cross::init_tauri_context!();
+            #[cfg(not(target_os = "android"))]
+            {
+                iced_cross::run_app::<$app>();
+            }
+            #[cfg(target_os = "android")]
+            {
+                panic!("Main should never be called on Android")
+            }
+        }
+    };
+}
 #[macro_export]
 #[cfg(not(any(target_os = "android", target_arch = "wasm32")))]
 macro_rules! lib {
@@ -15,6 +46,7 @@ macro_rules! lib {
     ($app:path) => {
         #[unsafe(no_mangle)]
         fn android_main(app: iced::AndroidApp) {
+            $crate::set_tauri_context(tauri::generate_context!());
             $crate::run_app::<$app>(app);
         }
         include!(concat!(env!("OUT_DIR"), "/android_glue.rs"));
@@ -31,6 +63,26 @@ macro_rules! lib {
             $crate::run_app::<$app>();
         }
     };
+}
+
+#[cfg(all(not(target_arch = "wasm32"), feature = "tauri-plugins"))]
+static TAURI_CONTEXT: std::sync::Mutex<Option<tauri::Context>> = std::sync::Mutex::new(None);
+
+#[cfg(all(not(target_arch = "wasm32"), feature = "tauri-plugins"))]
+pub fn set_tauri_context(context: tauri::Context) {
+    let mut lock = TAURI_CONTEXT.lock().expect("TAURI_CONTEXT Mutex poisoned");
+    *lock = Some(context);
+}
+
+#[cfg(all(not(target_arch = "wasm32"), feature = "tauri-plugins"))]
+fn get_tauri_context() -> tauri::Context {
+    TAURI_CONTEXT
+        .lock()
+        .expect("TAURI_CONTEXT Mutex poisoned")
+        .take()
+        .expect(
+            "Tauri context is not set. make sure to include iced_cross::main! and iced_cross::lib! macro in your main.rs and lib.rs",
+        )
 }
 
 #[cfg(not(any(target_os = "android", target_arch = "wasm32")))]
@@ -55,6 +107,14 @@ fn init_logging() {
 #[allow(unused_mut)]
 pub fn run_app<APP: IcedApp>(#[cfg(target_os = "android")] android_app: iced::AndroidApp) {
     init_logging();
+    #[cfg(all(not(target_arch = "wasm32"), feature = "tauri-plugins"))]
+    {
+        let builder = tauri::Builder::default();
+        let builder = APP::init_plugins(builder);
+        builder
+            .build(get_tauri_context())
+            .expect("Failed to build Tauri application");
+    }
     let mut app = iced::application(APP::new, APP::update, APP::view);
     #[cfg(any(target_os = "android", target_arch = "wasm32"))]
     {
@@ -78,7 +138,12 @@ pub trait IcedApp
 where
     Self: Sized + 'static,
 {
-    type Message: Send;
+    type Message: std::fmt::Debug + Send;
+
+    #[cfg(all(not(target_arch = "wasm32"), feature = "tauri-plugins"))]
+    fn init_plugins(builder: tauri::Builder<tauri::Wry>) -> tauri::Builder<tauri::Wry> {
+        builder
+    }
 
     fn new() -> (Self, Task<Self::Message>);
     fn update(&mut self, message: Self::Message) -> Task<Self::Message>;

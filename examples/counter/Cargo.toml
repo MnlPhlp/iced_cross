@@ -10,10 +10,18 @@ crate-type = ["staticlib", "cdylib", "rlib"]
 [dependencies]
 iced_cross = { path = "../.." }
 iced.workspace = true
+tokio = { version = "1.50.0", default-features = false, features = ["time"] }
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+gloo-timers = { version = "0.3.0", features = ["futures"] }
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 tauri.workspace = true
+tauri-plugin-blec = "0.8.1"
+futures = "0.3.32"
 
 [build-dependencies]
 iced_cross_build = { path = "../../crates/iced_cross_build" }
 
+[features]
+hotpatch = ["iced_cross/hotpatch"]
