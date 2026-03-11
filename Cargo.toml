@@ -1,0 +1,22 @@
+[package]
+name = "iced_cross"
+version = "0.1.0"
+edition = "2024"
+
+[workspace]
+resolver = "2"
+members = [
+    "crates/iced_cross_build",
+    "examples/counter",
+]
+
+[dependencies]
+iced = { path = "../../tmp/iced" }
+tracing-subscriber = "0.3.22"
+
+[target.'cfg(target_os = "android")'.dependencies]
+tracing-android = "0.2.0"
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+wasm-bindgen = "0.2"
+wasm-tracing = "2"

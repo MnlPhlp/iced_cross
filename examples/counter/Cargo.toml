@@ -1,0 +1,15 @@
+[package]
+name = "counter"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+name = "counter_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[dependencies]
+iced_cross = { path = "../.." }
+
+[build-dependencies]
+iced_cross_build = { path = "../../crates/iced_cross_build" }
+
