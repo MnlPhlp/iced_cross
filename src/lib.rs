@@ -1,5 +1,5 @@
-pub use iced;
 use iced::Task;
+// re-exports for use in macro generated code
 #[cfg(target_arch = "wasm32")]
 pub use wasm_bindgen;
 
@@ -14,7 +14,7 @@ macro_rules! lib {
 macro_rules! lib {
     ($app:path) => {
         #[unsafe(no_mangle)]
-        fn android_main(app: $crate::iced::AndroidApp) {
+        fn android_main(app: iced::AndroidApp) {
             $crate::run_app::<$app>(app);
         }
         include!(concat!(env!("OUT_DIR"), "/android_glue.rs"));

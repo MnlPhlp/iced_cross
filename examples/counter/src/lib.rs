@@ -1,10 +1,8 @@
-use iced_cross::{
-    iced::{
-        widget::{button, column, container, text},
-        Alignment, Color, Element, Length, Renderer, Task, Theme,
-    },
-    IcedApp,
+use iced::{
+    widget::{button, column, container, text},
+    Alignment, Color, Element, Length, Renderer, Task, Theme,
 };
+use iced_cross::IcedApp;
 
 iced_cross::lib!(Counter);
 

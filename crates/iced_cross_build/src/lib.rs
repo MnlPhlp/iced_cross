@@ -5,4 +5,5 @@ pub fn build() {
     if target_os == "android" {
         android::gen_glue_module();
     }
+    tauri_build::build();
 }

@@ -10,8 +10,13 @@ members = [
     "examples/counter",
 ]
 
-[dependencies]
+[workspace.dependencies]
 iced = { path = "../../tmp/iced" }
+tauri = "2.10.3"
+
+[dependencies]
+iced.workspace = true
+tauri = { workspace = true, optional = true }
 tracing-subscriber = "0.3.22"
 
 [target.'cfg(target_os = "android")'.dependencies]
@@ -20,3 +25,7 @@ tracing-android = "0.2.0"
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 wasm-bindgen = "0.2"
 wasm-tracing = "2"
+
+[features]
+default = ["tauri-plugins"]
+tauri-plugins = ["dep:tauri"]
