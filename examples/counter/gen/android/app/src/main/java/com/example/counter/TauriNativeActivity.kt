@@ -1,4 +1,4 @@
-package de.philipp_manuel.slint_android_test
+package com.example.counter
 
 import android.app.NativeActivity
 import app.tauri.plugin.PluginManager
