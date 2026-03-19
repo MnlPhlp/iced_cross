@@ -107,13 +107,20 @@ fn init_logging() {
 #[allow(unused_mut)]
 pub fn run_app<APP: IcedApp>(#[cfg(target_os = "android")] android_app: iced::AndroidApp) {
     init_logging();
+    #[cfg(all(target_os = "android", feature = "tauri-plugins"))]
+    {
+        tauri::set_android_app(android_app.clone());
+    }
     #[cfg(all(not(target_arch = "wasm32"), feature = "tauri-plugins"))]
     {
+        eprintln!("start building Tauri application");
         let builder = tauri::Builder::default();
         let builder = APP::init_plugins(builder);
+        eprintln!("Calling tauri builder.build");
         builder
             .build(get_tauri_context())
             .expect("Failed to build Tauri application");
+        eprintln!("Tauri build called");
     }
     let mut app = iced::application(APP::new, APP::update, APP::view);
     #[cfg(any(target_os = "android", target_arch = "wasm32"))]

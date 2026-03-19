@@ -15,6 +15,7 @@
             android:name=".MainActivity"
             android:exported="true">
             <meta-data android:name="android.app.lib_name" android:value="counter_lib" />
+            <meta-data android:name="android.app.func_name" android:value="ANativeActivity_onCreate" />
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />

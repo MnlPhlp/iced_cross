@@ -1,9 +1,8 @@
-use std::env;
-
 pub fn gen_glue_module() {
-    let pkg_name = env!("CARGO_PKG_NAME");
+    let identifier = "com.example.counter"; // TODO: get this from the tauri.conf.json
+    let method_pkg = identifier.replace('-', "_1").replace('.', "_");
     let code = format!(
-        r#"
+        "
 mod android_glue {{
     use tauri::wry::prelude::*;
 
@@ -31,8 +30,15 @@ mod android_glue {{
     ) {{
         ::tauri::send_channel_data(&mut env, id, data);
     }}
+    #[unsafe(no_mangle)]
+    #[allow(non_snake_case)]
+    fn Java_{method_pkg}_WryActivity_create() {{}}
+
+    #[unsafe(no_mangle)]
+    #[allow(non_snake_case)]
+    fn Java_{method_pkg}_WryActivity_start() {{}}
 }}
-"#
+"
     );
     let path = format!(
         "{}/android_glue.rs",
@@ -40,14 +46,3 @@ mod android_glue {{
     );
     std::fs::write(path, code).expect("Failed to write android glue module");
 }
-// mod android_glue {
-//
-//     #[unsafe(no_mangle)]
-//     #[allow(non_snake_case)]
-//     fn Java_de_philipp_1manuel_slint_1android_1test_WryActivity_create() {}
-//
-//     #[unsafe(no_mangle)]
-//     #[allow(non_snake_case)]
-//     fn Java_de_philipp_1manuel_slint_1android_1test_WryActivity_start() {}
-//
-// }

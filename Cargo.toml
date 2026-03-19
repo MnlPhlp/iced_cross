@@ -12,7 +12,7 @@ members = [
 
 [workspace.dependencies]
 iced = { path = "../../tmp/iced", features = ["tokio"] }
-tauri = "2.10.3"
+tauri = { path = "../../tmp/tauri/crates/tauri", features = ["no-webview"] }
 
 [dependencies]
 iced.workspace = true
