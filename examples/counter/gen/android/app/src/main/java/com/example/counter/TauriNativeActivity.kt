@@ -1,35 +1,59 @@
 package com.example.counter
 
-import android.app.Activity
-import android.app.NativeActivity
-import androidx.appcompat.app.AppCompatActivity
+import android.content.Intent
+import android.content.res.Configuration
 import app.tauri.plugin.PluginManager
+import com.google.androidgamesdk.GameActivity
 
-class CompatActivity : AppCompatActivity() {
+/**
+ * Custom MainActivity that extends GameActivity. This allows us to use native rendering and still
+ * support tauri plugins
+ */
+abstract class TauriNativeActivity : GameActivity() {
     val pluginManager = PluginManager(this)
 
     fun getAppClass(name: String): Class<*> {
         return Class.forName(name)
     }
 
-    fun forwardCreate(savedInstanceState: android.os.Bundle?) {
-        super.onCreate(savedInstanceState)
-    }
-}
+    private external fun processMainThreadQueueNative()
 
-/**
- * Custom MainActivity that extends NativeActivity. This allows us to handle Java/Kotlin callbacks
- * from native Rust code.
- */
-abstract class TauriNativeActivity : NativeActivity() {
-    val compat = CompatActivity()
-
-    fun getCompatActivity(): Activity {
-        return this.compat
+    fun processMainThreadQueue() {
+        runOnUiThread { processMainThreadQueueNative() }
     }
 
-    override fun onCreate(savedInstanceState: android.os.Bundle?) {
-        super.onCreate(savedInstanceState)
-        compat.forwardCreate(savedInstanceState)
+    override fun onDestroy() {
+        super.onDestroy()
+        pluginManager.onDestroy()
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        pluginManager.onNewIntent(intent)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        pluginManager.onResume()
+    }
+
+    override fun onPause() {
+        super.onPause()
+        pluginManager.onPause()
+    }
+
+    override fun onRestart() {
+        super.onRestart()
+        pluginManager.onRestart()
+    }
+
+    override fun onStop() {
+        super.onStop()
+        pluginManager.onStop()
+    }
+
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
+        pluginManager.onConfigurationChanged(newConfig)
     }
 }

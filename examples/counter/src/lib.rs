@@ -1,5 +1,6 @@
 use iced::{
-    widget::{button, column, container, text},
+    theme::{Base, Mode},
+    widget::{button, column, container, text, text_input},
     Alignment, Color, Element, Length, Renderer, Task, Theme,
 };
 use iced_cross::IcedApp;
@@ -14,6 +15,7 @@ pub enum Message {
     UpdateDevices(Vec<String>),
     ScanStarted,
     ScanFinished,
+    UpdateText(String),
 }
 
 #[derive(Debug, Default)]
@@ -21,6 +23,7 @@ pub struct Counter {
     value: i32,
     devices: Vec<String>,
     scan_running: bool,
+    text_value: String,
 }
 
 #[cfg(not(target_arch = "wasm32"))]
@@ -47,7 +50,16 @@ fn start_scan() -> Task<Message> {
         Task::future(async move {
             while let Some(devices) = rx.recv().await {
                 println!("Received BLE devices: {devices:?}");
-                let device_names = devices.into_iter().map(|d| d.name).collect::<Vec<_>>();
+                let device_names = devices
+                    .into_iter()
+                    .filter_map(|d| {
+                        if d.name.is_empty() {
+                            None
+                        } else {
+                            Some(d.name)
+                        }
+                    })
+                    .collect::<Vec<_>>();
                 stream_tx
                     .send(Message::UpdateDevices(device_names))
                     .await
@@ -107,6 +119,9 @@ impl IcedApp for Counter {
             Message::UpdateDevices(devices) => {
                 self.devices = devices;
             }
+            Message::UpdateText(text) => {
+                self.text_value = text;
+            }
         }
         Task::none()
     }
@@ -120,6 +135,11 @@ impl IcedApp for Counter {
         .padding(20)
         .spacing(10)
         .align_x(Alignment::Center);
+
+        let text_input = text_input("Type something...", &self.text_value)
+            .padding(10)
+            .size(20)
+            .on_input(|value| Message::UpdateText(value));
 
         let ble_scan = {
             let start_stop_button = if self.scan_running {
@@ -139,7 +159,7 @@ impl IcedApp for Counter {
             .align_x(Alignment::Center)
         };
 
-        let content = column![counter, ble_scan]
+        let content = column![counter, text_input, ble_scan]
             .padding(20)
             .spacing(40)
             .align_x(Alignment::Center);
@@ -149,8 +169,12 @@ impl IcedApp for Counter {
             .center_y(Length::Fill)
             .width(Length::Fill)
             .height(Length::Fill)
-            .style(|_theme| container::Style {
-                background: Some(Color::from_rgb(0.1, 0.1, 0.15).into()),
+            .style(|theme: &Theme| container::Style {
+                background: if matches!(theme.mode(), Mode::Dark) {
+                    Some(Color::from_rgb(0.1, 0.1, 0.15).into())
+                } else {
+                    Some(Color::from_rgb(0.9, 0.9, 0.95).into())
+                },
                 ..Default::default()
             })
             .into()
